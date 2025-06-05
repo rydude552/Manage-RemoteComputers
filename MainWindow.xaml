@@ -619,8 +619,17 @@
                     
                     <!-- Filter Flyout Button -->
                     <Grid Margin="16,0,0,0" VerticalAlignment="Center">
-                        <Button x:Name="btnFilterFlyout" Content="Filters ⏷" Height="32" Padding="16,0"
-                                Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1"/>
+                        <Button x:Name="btnFilterFlyout" Height="32" Padding="16,0"
+                            Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Filters" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                <Canvas Width="14" Height="14">
+                                <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
+                            </StackPanel>
+                        </Button>
                         <Popup x:Name="popupFilters" Placement="Bottom" PlacementTarget="{Binding ElementName=btnFilterFlyout}" StaysOpen="False" AllowsTransparency="True">
                             <Border Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" CornerRadius="8" Padding="8">
                                 <StackPanel>
@@ -639,8 +648,17 @@
 
                     <!-- Actions Flyout Button -->
                     <Grid Margin="16,0,0,0" VerticalAlignment="Center">
-                        <Button x:Name="btnActionsFlyout" Content="Actions ⏷" Height="32" Padding="16,0"
-                                Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1"/>
+                        <Button x:Name="btnActionsFlyout" Height="32" Padding="16,0"
+                            Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Actions" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                <Canvas Width="14" Height="14">
+                                <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
+                            </StackPanel>
+                        </Button>
                         <Popup x:Name="popupActions" Placement="Bottom" PlacementTarget="{Binding ElementName=btnActionsFlyout}" StaysOpen="False" AllowsTransparency="True">
                             <Border Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" CornerRadius="8" Padding="8">
                                 <StackPanel>
