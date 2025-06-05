@@ -893,20 +893,38 @@
                 <StackPanel Orientation="Horizontal" Margin="24,24,0,12">
                     <TextBlock Text="Software Management" FontSize="28" FontWeight="Bold" Foreground="#23272F"/>
                     <TextBox x:Name="txtSoftwareSearch" Width="220" Height="36" Margin="32,0,0,0" VerticalAlignment="Center" VerticalContentAlignment="Center" FontSize="14" Padding="8,4" Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" ToolTip="Search software or server..."/>
-                    <ComboBox x:Name="cbSoftwareStatusFilter" Width="160" Height="36" Margin="16,0,0,0" VerticalAlignment="Center" FontSize="14">
-                        <ComboBoxItem Content="All"/>
-                        <ComboBoxItem Content="Up to date"/>
-                        <ComboBoxItem Content="Update available"/>
-                    </ComboBox>
+                    <Button x:Name="btnSoftwareStatusFilterFlyout" Height="32" Padding="16,0" Margin="16,0,0,0"
+                        Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="txtSoftwareStatusFilter" Text="All" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                <Canvas Width="14" Height="14">
+                                    <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
+                        </StackPanel>
+                    </Button>
+                    <Popup x:Name="popupSoftwareStatusFilter" Placement="Bottom" PlacementTarget="{Binding ElementName=btnSoftwareStatusFilterFlyout}" StaysOpen="False" AllowsTransparency="True">
+                        <Border Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" CornerRadius="8" Padding="8">
+                            <StackPanel>
+                                <Button x:Name="btnSoftwareStatusAll" Content="All" Height="32" Margin="0,0,0,6" Padding="16,0"
+                                        Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1" />
+                                <Button x:Name="btnSoftwareStatusUpToDate" Content="Up to date" Height="32" Margin="0,0,0,6" Padding="16,0"
+                                        Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1" />
+                                <Button x:Name="btnSoftwareStatusUpdateAvailable" Content="Update available" Height="32" Padding="16,0"
+                                        Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
                     <Button x:Name="btnSoftwareActionsFlyout" Height="32" Padding="16,0" Margin="16,0,0,0"
                         Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Actions" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <Viewbox Width="14" Height="14" VerticalAlignment="Center">
-                            <Canvas Width="14" Height="14">
-                            <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
-                            </Canvas>
-                        </Viewbox>
+                            <TextBlock Text="Actions" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                <Canvas Width="14" Height="14">
+                                    <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
                         </StackPanel>
                     </Button>
                     <Popup x:Name="popupSoftwareActions" Placement="Bottom" PlacementTarget="{Binding ElementName=btnSoftwareActionsFlyout}" StaysOpen="False" AllowsTransparency="True">
