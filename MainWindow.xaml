@@ -852,8 +852,17 @@
 
                     <!-- Rows Per Page Flyout -->
                     <Grid Margin="8,0,0,0" VerticalAlignment="Center">
-                        <Button x:Name="btnRowsPerPageFlyout" Content="Rows: 25 ⏷" Height="32" Padding="16,0"
-                                Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1"/>
+                        <Button x:Name="btnRowsPerPageFlyout" Height="32" Padding="16,0"
+                            Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock x:Name="txtRowsPerPage" Text="Rows: 25" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                <Canvas Width="14" Height="14">
+                                <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                </Canvas>
+                            </Viewbox>
+                            </StackPanel>
+                        </Button>
                         <Popup x:Name="popupRowsPerPage" Placement="Bottom" PlacementTarget="{Binding ElementName=btnRowsPerPageFlyout}" StaysOpen="False" AllowsTransparency="True">
                             <Border Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" CornerRadius="8" Padding="8">
                                 <StackPanel>
