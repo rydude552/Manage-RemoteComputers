@@ -614,7 +614,7 @@
                 </Grid.RowDefinitions>
                 <!-- Header and Search/Actions -->
                 <StackPanel Orientation="Horizontal" Margin="24,24,0,12">
-                    <TextBlock Text="Servers" FontSize="28" FontWeight="Bold" Foreground="#23272F"/>
+                    <TextBlock x:Name="txtServersHeader" Text="Servers (N/A)" FontSize="28" FontWeight="Bold" Foreground="#23272F"/>
                     <TextBox x:Name="txtServerSearch" Width="220" Height="36" Margin="32,0,0,0" VerticalAlignment="Center" VerticalContentAlignment="Center" FontSize="14" Padding="8,4" Background="#FFF" BorderBrush="#E0E7EF" BorderThickness="1" ToolTip="Search servers..."/>
                     
                     <!-- Filter Flyout Button -->
@@ -622,12 +622,12 @@
                         <Button x:Name="btnFilterFlyout" Height="32" Padding="16,0"
                             Background="#E0E7EF" Foreground="#23272F" BorderBrush="#E0E7EF" BorderThickness="1">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Filters" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                            <Viewbox Width="14" Height="14" VerticalAlignment="Center">
-                                <Canvas Width="14" Height="14">
-                                <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
-                                </Canvas>
-                            </Viewbox>
+                                <TextBlock x:Name="txtServersFilter" Text="All" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <Viewbox Width="14" Height="14" VerticalAlignment="Center">
+                                    <Canvas Width="14" Height="14">
+                                        <Path Data="M3,5 L7,9 L11,5" Stroke="#23272F" StrokeThickness="2" StrokeLineJoin="Round" Fill="Transparent"/>
+                                    </Canvas>
+                                </Viewbox>
                             </StackPanel>
                         </Button>
                         <Popup x:Name="popupFilters" Placement="Bottom" PlacementTarget="{Binding ElementName=btnFilterFlyout}" StaysOpen="False" AllowsTransparency="True">
