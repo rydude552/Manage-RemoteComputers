@@ -1,118 +1,128 @@
+function Import-Xaml {
+    param($XamlString)
+    $reader = New-Object System.Xml.XmlNodeReader([xml]$XamlString)
+    return [Windows.Markup.XamlReader]::Load($reader)
+}
+
 function Get-NamedControls {
-    param($root)
-    $named = @{}
-    if ($root -is [System.Windows.FrameworkElement] -and $root.Name) {
-        $named[$root.Name] = $root
-    }
-    if ($root -is [System.Windows.DependencyObject]) {
-        foreach ($child in [System.Windows.LogicalTreeHelper]::GetChildren($root)) {
-            if ($child -is [System.Windows.DependencyObject]) {
-                $named += Get-NamedControls $child
+    param($XamlString)
+    $controls = @{}
+    function Recurse($node) {
+        if ($null -eq $node) { return }
+        if ($node -is [System.Windows.FrameworkElement] -and $node.Name) {
+            $controls[$node.Name] = $node
+        }
+        if ($node -is [System.Windows.DependencyObject]) {
+            foreach ($child in [System.Windows.LogicalTreeHelper]::GetChildren($node)) {
+                if ($child -is [System.Windows.DependencyObject]) {
+                    Recurse $child
+                }
             }
         }
     }
-    return $named
+    Recurse $XamlString
+    return $controls
 }
 
 function Show-Loading {
     param($Controls)
-    $Controls.loadingOverlay.Visibility = 'Visible'
-    $Controls.txtStatusBar.Text = "Loading data from AWS..."
+    try {
+        $Controls.UI.loadingOverlay.Visibility = 'Visible'
+        $Controls.UI.txtStatusBar.Text = "Loading data from AWS..."
+    } catch {
+        Write-Host "[Show-Loading] error: $_"
+    }
 }
 
 function Hide-Loading {
     param($Controls)
-    $Controls.loadingOverlay.Visibility = 'Collapsed'
-    $Controls.txtStatusBar.Text = "Ready"
+    try {
+        $Controls.UI.loadingOverlay.Visibility = 'Collapsed'
+        $Controls.UI.txtStatusBar.Text = "Ready"
+    } catch {
+        Write-Host "[Hide-Loading] error: $_"
+    }
 }
 
 function Update-ServerPaging {
-    param(
-        $script_ServerRowsPerPage,
-        $script_ServerCurrentPage,
-        $script_ServerFiltered,
-        $script_ServerTotalPages,
-        $script_PagedServers,
-        $Controls
-    )
-    $rowsPerPage = $script_ServerRowsPerPage
-    $totalRows = $script_ServerFiltered.Count
-    $script_ServerTotalPages = [math]::Max([math]::Ceiling($totalRows / $rowsPerPage), 1)
-    $script_ServerCurrentPage = [math]::Min([math]::Max($script_ServerCurrentPage, 1), $script_ServerTotalPages)
-    $start = [Math]::Max(0, ($script_ServerCurrentPage - 1) * $rowsPerPage)
-    $arr = @($script_ServerFiltered)
-    $end = [math]::Min($start + $rowsPerPage - 1, $arr.Count - 1)
-    $paged = ($start -le $end) ? $arr[$start..$end] : @()
-    $script_PagedServers.Clear()
-    foreach ($item in $paged) { $script_PagedServers.Add($item) }
-    $Controls.txtPageInfo.Text = "$($script_ServerCurrentPage) / $($script_ServerTotalPages)"
+    param($Controls)
+    try {
+        $vars = $Controls.Variables
+        $rowsPerPage = $vars.ServerRowsPerPage
+        $totalRows = $vars.ServerFiltered.Count
+        $vars.ServerTotalPages = [math]::Max([math]::Ceiling($totalRows / $rowsPerPage), 1)
+        $vars.ServerCurrentPage = [math]::Min([math]::Max($vars.ServerCurrentPage, 1), $vars.ServerTotalPages)
+        $start = [Math]::Max(0, ($vars.ServerCurrentPage - 1) * $rowsPerPage)
+        $arr = @($vars.ServerFiltered)
+        $end = [math]::Min($start + $rowsPerPage - 1, $arr.Count - 1)
+        $paged = if ($start -le $end) { $arr[$start..$end] } else { @() }
+        $vars.PagedServers.Clear()
+        foreach ($item in $paged) { $vars.PagedServers.Add($item) }
+        $Controls.UI.txtPageInfo.Text = "$($vars.ServerCurrentPage) / $($vars.ServerTotalPages)"
+    } catch {
+        Write-Host "[Update-ServerPaging] error: $_"
+    }
 }
 
 function Reset-ServerFilterButtons {
     param($Controls)
-    $Controls.btnFilterAll.Background = "#E0E7EF"
-    $Controls.btnFilterOnline.Background = "#E0E7EF"
-    $Controls.btnFilterOffline.Background = "#E0E7EF"
-    $Controls.btnFilterImpaired.Background = "#E0E7EF"
-    $Controls.btnFilterAll.Foreground = "#23272F"
-    $Controls.btnFilterOnline.Foreground = "#23272F"
-    $Controls.btnFilterOffline.Foreground = "#23272F"
-    $Controls.btnFilterImpaired.Foreground = "#23272F"
+    try {
+        $Controls.UI.btnFilterAll.Background = "#E0E7EF"; $Controls.UI.btnFilterAll.Foreground = "#23272F"
+        $Controls.UI.btnFilterOnline.Background = "#E0E7EF"; $Controls.UI.btnFilterOnline.Foreground = "#23272F"
+        $Controls.UI.btnFilterOffline.Background = "#E0E7EF"; $Controls.UI.btnFilterOffline.Foreground = "#23272F"
+        $Controls.UI.btnFilterImpaired.Background = "#E0E7EF"; $Controls.UI.btnFilterImpaired.Foreground = "#23272F"
+    } catch {
+        Write-Host "[Reset-ServerFilterButtons] error: $_"
+    }
 }
 
 function Set-ActiveFilterButton {
     param($filter, $Controls)
-    Reset-ServerFilterButtons $Controls
-    switch ($filter) {
-        "All"      { $Controls.btnFilterAll.Background = "#4F46E5"; $Controls.btnFilterAll.Foreground = "White" }
-        "Online"   { $Controls.btnFilterOnline.Background = "#22C55E"; $Controls.btnFilterOnline.Foreground = "White" }
-        "Offline"  { $Controls.btnFilterOffline.Background = "#64748B"; $Controls.btnFilterOffline.Foreground = "White" }
-        "Impaired" { $Controls.btnFilterImpaired.Background = "#EF4444"; $Controls.btnFilterImpaired.Foreground = "White" }
+    try {
+        Reset-ServerFilterButtons $Controls
+        switch ($filter) {
+            "All"      { $Controls.UI.btnFilterAll.Background = "#4F46E5"; $Controls.UI.btnFilterAll.Foreground = "White" }
+            "Online"   { $Controls.UI.btnFilterOnline.Background = "#22C55E"; $Controls.UI.btnFilterOnline.Foreground = "White" }
+            "Offline"  { $Controls.UI.btnFilterOffline.Background = "#64748B"; $Controls.UI.btnFilterOffline.Foreground = "White" }
+            "Impaired" { $Controls.UI.btnFilterImpaired.Background = "#EF4444"; $Controls.UI.btnFilterImpaired.Foreground = "White" }
+        }
+    } catch {
+        Write-Host "[Set-ActiveFilterButton] error: $_"
     }
 }
 
 function Update-ServerGridFilter {
-    param(
-        $AllServers,
-        $Controls,
-        [ref]$script_ServerFilter,
-        [ref]$script_ServerFiltered,
-        [ref]$script_ServerCurrentPage
-    )
-    $search = $Controls.txtServerSearch.Text.Trim().ToLower()
-    $filter = $script_ServerFilter.Value
-    $filtered = @()
-    foreach ($server in $AllServers) {
-        $searchMatch = (
-            $search -eq '' -or
-            ($server.Hostname        -and $server.Hostname.ToLower().Contains($search))      -or
-            ($server.IPAddress       -and $server.IPAddress.ToLower().Contains($search))     -or
-            ($server.EC2InstanceId   -and $server.EC2InstanceId.ToLower().Contains($search)) -or
-            ($server.EC2Status       -and $server.EC2Status.ToLower().Contains($search))     -or
-            ($server.CPUUsage        -and $server.CPUUsage.ToLower().Contains($search))      -or
-            ($server.MemoryUsage     -and $server.MemoryUsage.ToLower().Contains($search))   -or
-            ($server.OS              -and $server.OS.ToLower().Contains($search))
-        )
-        $statusMatch = switch ($filter) {
-            "Online"   { $server.EC2Status -eq "Running"; break }
-            "Offline"  { $server.EC2Status -eq "Stopped"; break }
-            "Impaired" { $server.EC2Status -eq "Impaired"; break }
-            default    { $true }
+    param($Controls)
+    try {
+        $vars = $Controls.Variables
+        $AllServers = $vars.AllServers
+        $search = $Controls.UI.txtServerSearch.Text.Trim().ToLower()
+        $filter = $vars.ServerFilter
+        $filtered = [System.Collections.Generic.List[object]]::new()
+        foreach ($server in $AllServers) {
+            $searchMatch = (
+                $search -eq '' -or
+                ($server.Hostname        -and $server.Hostname.ToLower().Contains($search))      -or
+                ($server.IPAddress       -and $server.IPAddress.ToLower().Contains($search))     -or
+                ($server.EC2InstanceId   -and $server.EC2InstanceId.ToLower().Contains($search)) -or
+                ($server.EC2Status       -and $server.EC2Status.ToLower().Contains($search))     -or
+                ($server.CPUUsage        -and $server.CPUUsage.ToLower().Contains($search))      -or
+                ($server.MemoryUsage     -and $server.MemoryUsage.ToLower().Contains($search))   -or
+                ($server.OS              -and $server.OS.ToLower().Contains($search))
+            )
+            $statusMatch = switch ($filter) {
+                "Online"   { $server.EC2Status -eq "Running"; break }
+                "Offline"  { $server.EC2Status -eq "Stopped"; break }
+                "Impaired" { $server.EC2Status -eq "Impaired"; break }
+                default    { $true }
+            }
+            if ($searchMatch -and $statusMatch) { $null = $filtered.Add($server) }
         }
-        if ($searchMatch -and $statusMatch) { $filtered += $server }
-    }
-    $script_ServerFiltered.Value = @($filtered)
-    $script_ServerCurrentPage.Value = 1
-}
-
-function Show-Panel {
-    param($panelName, $Panels)
-    foreach ($panel in $Panels) {
-        if ($panel.Name -eq $panelName) {
-            $panel.Visibility = 'Visible'
-        } else {
-            $panel.Visibility = 'Collapsed'
-        }
+        $Controls.Variables.ServerFiltered = @($filtered)
+        $Controls.Variables.ServerCurrentPage = 1
+        $Controls.UI.txtServersHeader.Text = "Servers ($($filtered.Count))"
+    } catch {
+        Write-Host "[Update-ServerGridFilter] error: $_"
     }
 }
 
@@ -130,70 +140,74 @@ function Get-StatusColor {
 }
 
 function Update-DashboardAndTop10 {
-    param($AllServers, $Controls)
-    $runningCount  = ($AllServers | Where-Object { $_.EC2Status -eq "Running" }).Count
-    $stoppedCount  = ($AllServers | Where-Object { $_.EC2Status -eq "Stopped" }).Count
-    $impairedCount = ($AllServers | Where-Object { $_.EC2Status -eq "Impaired" }).Count
-    $Controls.txtSummaryRunning.Text  = $runningCount
-    $Controls.txtSummaryStopped.Text  = $stoppedCount
-    $Controls.txtSummaryImpaired.Text = $impairedCount
+    param($Controls)
+    try {
+        $vars = $Controls.Variables
+        $AllServers = $vars.AllServers
+        $runningCount  = ($AllServers | Where-Object { $_.EC2Status -eq "Running" }).Count
+        $stoppedCount  = ($AllServers | Where-Object { $_.EC2Status -eq "Stopped" }).Count
+        $impairedCount = ($AllServers | Where-Object { $_.EC2Status -eq "Impaired" }).Count
+        $Controls.UI.txtSummaryRunning.Text = $runningCount
+        $Controls.UI.txtSummaryStopped.Text = $stoppedCount
+        $Controls.UI.txtSummaryImpaired.Text = $impairedCount
 
-    $TopDisk = $AllServers |
-        Where-Object { $_.DiskUsage -match '^\d+(\.\d+)?%' } |
-        Sort-Object { [double]($_.DiskUsage -replace '%','') } -Descending |
-        Select-Object -First 10 |
-        ForEach-Object {
-            $usage = [double]($_.DiskUsage -replace '%','')
-            [pscustomobject]@{
-                Hostname    = $_.Hostname
-                Usage       = $_.DiskUsage
-                Status      = if ($usage -ge 90) { "Warning" } else { "Healthy" }
-                StatusColor = (Get-StatusColor -status $(if ($usage -ge 90) { "Warning" } else { "Healthy" }))
+        $TopDisk = $AllServers |
+            Where-Object { $_.DiskUsage -match '^\d+(\.\d+)?%' } |
+            Sort-Object { [double]($_.DiskUsage -replace '%','') } -Descending |
+            Select-Object -First 10 |
+            ForEach-Object {
+                $usage = [double]($_.DiskUsage -replace '%','')
+                [pscustomobject]@{
+                    Hostname    = $_.Hostname
+                    Usage       = $_.DiskUsage
+                    Status      = if ($usage -ge 90) { "Warning" } else { "Healthy" }
+                    StatusColor = (Get-StatusColor -status $(if ($usage -ge 90) { "Warning" } else { "Healthy" }))
+                }
             }
-        }
-    $Controls.dgTopDisk.ItemsSource = $TopDisk
+        $Controls.UI.dgTopDisk.ItemsSource = $TopDisk
 
-    $TopCPU = $AllServers |
-        Where-Object { $_.CPUUsage -match '^\d+(\.\d+)?%' } |
-        Sort-Object { [double]($_.CPUUsage -replace '%','') } -Descending |
-        Select-Object -First 10 |
-        ForEach-Object {
-            [pscustomobject]@{
-                Hostname    = $_.Hostname
-                Usage       = $_.CPUUsage
-                Status      = if ([double]($_.CPUUsage -replace '%','') -ge 95) { "Critical" }
-                              elseif ([double]($_.CPUUsage -replace '%','') -ge 85) { "Warning" }
-                              else { "Healthy" }
-                StatusColor = (Get-StatusColor -status $(if ([double]($_.CPUUsage -replace '%','') -ge 95) { "Critical" }
-                                                        elseif ([double]($_.CPUUsage -replace '%','') -ge 85) { "Warning" }
-                                                        else { "Healthy" }))
+        $TopCPU = $AllServers |
+            Where-Object { $_.CPUUsage -match '^\d+(\.\d+)?%' } |
+            Sort-Object { [double]($_.CPUUsage -replace '%','') } -Descending |
+            Select-Object -First 10 |
+            ForEach-Object {
+                [pscustomobject]@{
+                    Hostname    = $_.Hostname
+                    Usage       = $_.CPUUsage
+                    Status      = if ([double]($_.CPUUsage -replace '%','') -ge 95) { "Critical" }
+                                  elseif ([double]($_.CPUUsage -replace '%','') -ge 85) { "Warning" }
+                                  else { "Healthy" }
+                    StatusColor = (Get-StatusColor -status $(if ([double]($_.CPUUsage -replace '%','') -ge 95) { "Critical" }
+                                                            elseif ([double]($_.CPUUsage -replace '%','') -ge 85) { "Warning" }
+                                                            else { "Healthy" }))
+                }
             }
-        }
-    $Controls.dgTopCPU.ItemsSource = $TopCPU
+        $Controls.UI.dgTopCPU.ItemsSource = $TopCPU
 
-    $TopMemory = $AllServers |
-        Where-Object { $_.MemoryUsage -match '^\d+(\.\d+)?%' } |
-        Sort-Object { [double]($_.MemoryUsage -replace '%','') } -Descending |
-        Select-Object -First 10 |
-        ForEach-Object {
-            [pscustomobject]@{
-                Hostname    = $_.Hostname
-                Usage       = $_.MemoryUsage
-                Status      = if ([double]($_.MemoryUsage -replace '%','') -ge 90) { "Warning" }
-                              elseif ([double]($_.MemoryUsage -replace '%','') -ge 80) { "Healthy" }
-                              else { "Healthy" }
-                StatusColor = (Get-StatusColor -status $(if ([double]($_.MemoryUsage -replace '%','') -ge 90) { "Warning" }
-                                                        else { "Healthy" }))
+        $TopMemory = $AllServers |
+            Where-Object { $_.MemoryUsage -match '^\d+(\.\d+)?%' } |
+            Sort-Object { [double]($_.MemoryUsage -replace '%','') } -Descending |
+            Select-Object -First 10 |
+            ForEach-Object {
+                [pscustomobject]@{
+                    Hostname    = $_.Hostname
+                    Usage       = $_.MemoryUsage
+                    Status      = if ([double]($_.MemoryUsage -replace '%','') -ge 90) { "Warning" }
+                                  elseif ([double]($_.MemoryUsage -replace '%','') -ge 80) { "Healthy" }
+                                  else { "Healthy" }
+                    StatusColor = (Get-StatusColor -status $(if ([double]($_.MemoryUsage -replace '%','') -ge 90) { "Warning" }
+                                                            else { "Healthy" }))
+                }
             }
-        }
-    $Controls.dgTopMemory.ItemsSource = $TopMemory
+        $Controls.UI.dgTopMemory.ItemsSource = $TopMemory
+    } catch {
+        Write-Host "[Update-DashboardAndTop10] error: $_"
+    }
 }
 
 function Get-ServerDataAsync {
-    param(
-        [ref]$AllServers,
-        $Controls
-    )
+    param($Controls, $timeout = 30)
+
     Show-Loading $Controls
 
     $shared = [hashtable]::Synchronized(@{
@@ -212,19 +226,20 @@ function Get-ServerDataAsync {
 
     [void]$ps.AddScript({
         param($shared)
+
         $result = @()
-        $Ec2InstanceQuery = @{
-            Name = "OperatingSystem"
-            Values = "Windows"
-        }
+        $AWSRegion = 'us-gov-west-1'
+
         try {
-            $ec2Instances = Get-EC2Instance -Region us-gov-west-1 -Filter $Ec2InstanceQuery -ErrorAction Stop | Select-Object -ExpandProperty Instances
-            foreach ($instance in $ec2Instances) {
-                $state = $instance.State.Name
-                $hostname = $instance.PrivateDnsName
-                $ip = $instance.PrivateIpAddress
+            # Get all managed instances from Systems Manager (SSM)
+            $ssmInstances = Get-SSMInstanceInformation -Region $AWSRegion -ErrorAction Stop
+
+            foreach ($instance in $ssmInstances) {
                 $id = $instance.InstanceId
-                $os = $instance.PlatformDetails
+                $hostname = $instance.ComputerName
+                $ip = $instance.IPAddress
+                $os = $instance.PlatformName
+                $state = if ($instance.PingStatus -eq 'Online') { 'Running' } else { 'Stopped' }
                 $cpu = "N/A"
                 $mem = "N/A"
                 $disk = "N/A"
@@ -313,33 +328,74 @@ function Get-ServerDataAsync {
 
     $asyncResult = $ps.BeginInvoke()
 
-    # Wait for the background job to finish (with timeout)
-    $timeout = 30 # seconds
+    # Use a timer to monitor the runspace and clean up when done
+    $timer = New-Object System.Windows.Threading.DispatcherTimer
+    $timer.Interval = [TimeSpan]::FromMilliseconds(200)
     $elapsed = 0
-    while ($shared.Status -eq 'Running' -and $elapsed -lt $timeout) {
-        Start-Sleep -Milliseconds 200
+
+    $timer.Add_Tick({
         $elapsed += 0.2
-    }
+        if ($shared.Status -ne 'Running' -or $elapsed -ge $timeout) {
+            $timer.Stop()
+            try {
+                [void]$ps.EndInvoke($asyncResult)
+            } catch {
+                Write-Host "EndInvoke error: $_"
+            }
+            try {
+                [void]$runspace.Close()
+                [void]$runspace.Dispose()
+            } catch {
+                Write-Host "Runspace cleanup error: $_"
+            }
+            try {
+                [void]$ps.Dispose()
+            } catch {
+                Write-Host "PS cleanup error: $_"
+            }
 
-    if ($shared.Status -eq 'Completed') {
-        $AllServers.Value = [System.Collections.ObjectModel.ObservableCollection[psobject]]::new()
-        foreach ($item in $shared.Data) {
-            $AllServers.Value.Add($item)
+            try {
+                Hide-Loading $Controls
+            } catch {
+                Write-Host "Hide-Loading error: $_"
+            }
+            try {
+                $Controls.Variables.AllServers.Clear()
+            } catch {
+                Write-Host "AllServers.Clear error: $_"
+            }
+            if ($shared.Status -eq 'Completed' -and $shared.Data) {
+                foreach ($item in $shared.Data) {
+                    try {
+                        $Controls.Variables.AllServers.Add($item)
+                    } catch {
+                        Write-Host "AllServers.Add error: $_"
+                    }
+                }
+                $Controls.UI.txtStatusBar.Text = "Server data loaded successfully."
+            } elseif ($shared.Status -eq 'Error') {
+                $Controls.UI.txtStatusBar.Text = "Error: $($shared.Error)"
+            } else {
+                $Controls.UI.txtStatusBar.Text = "Failed to load server data."
+            }
+            try {
+                Update-ServerGridFilter $Controls
+            } catch {
+                Write-Host "Update-ServerGridFilter error: $_"
+            }
+            try {
+                Update-ServerPaging $Controls
+            } catch {
+                Write-Host "Update-ServerPaging error: $_"
+            }
+            try {
+                Update-DashboardAndTop10 $Controls
+            } catch {
+                Write-Host "Update-DashboardAndTop10 error: $_"
+            }
         }
-        # The caller should call Update-ServerPaging and Update-DashboardAndTop10
-        $Controls.txtStatusBar.Text = "Data loaded successfully."
-    } elseif ($shared.Status -eq 'Error') {
-        $Controls.txtStatusBar.Text = "Error loading data: $($shared.Error)"
-    } else {
-        $Controls.txtStatusBar.Text = "Data load timed out."
-    }
-    Hide-Loading $Controls
-
-    # Clean up runspace and PowerShell instance
-    [void]$ps.EndInvoke($asyncResult)
-    [void]$runspace.Close()
-    [void]$runspace.Dispose()
-    [void]$ps.Dispose()
+    }.GetNewClosure())
+    $timer.Start()
 }
 
-Export-ModuleMember -Function *-*
+Export-ModuleMember -Function Import-Xaml, Get-NamedControls, Show-Loading, Hide-Loading, Update-ServerPaging, Reset-ServerFilterButtons, Set-ActiveFilterButton, Update-ServerGridFilter, Get-StatusColor, Update-DashboardAndTop10, Get-ServerDataAsync
